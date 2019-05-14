@@ -1,0 +1,7 @@
+repositories {
+    jcenter()
+}
+
+dependencies {
+    implementation 'com.alibaba.android:ddsharesdk:1.1.0'
+}

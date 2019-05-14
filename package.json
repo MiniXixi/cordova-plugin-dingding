@@ -1,0 +1,24 @@
+{
+  "name": "cordova-plugin-dingding",
+  "version": "0.0.1",
+  "description": "A cordova plugin, a JS version of DingDing SDK",
+
+  "cordova": {
+    "id": "cordova-plugin-dingding",
+    "platforms": [
+      "android"
+    ]
+  },
+
+  "keywords": [
+    "cordova",
+    "dingding",
+    "dingtalk",
+    "login",
+    "share",
+    "cordova-android"
+  ],
+
+  "author": "wxq",
+  "license": "MIT"
+}

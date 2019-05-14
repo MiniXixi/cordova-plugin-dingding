@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='utf-8'?>
+<plugin id="cordova-plugin-dingding" version="0.0.1" 
+    xmlns="http://apache.org/cordova/ns/plugins/1.0" 
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <name>cordova-plugin-dingding</name>
+
+    <preference name="DINGDING_APPID"/>
+
+    <js-module name="Dingding" src="www/dingding.js">
+        <!-- js直接用插件名Dingding -->
+        <clobbers target="Dingding" />
+    </js-module>
+
+    <platform name="android">
+      <!-- 插件操作自动执行android-install.js -->
+       <hook type="after_plugin_add" src="scripts/android-install.js" />
+        <hook type="after_plugin_install" src="scripts/android-install.js" />
+        <hook type="before_plugin_rm" src="scripts/android-install.js" />
+        <hook type="before_plugin_uninstall" src="scripts/android-install.js" />
+        
+        <config-file parent="/*" target="res/xml/config.xml">
+            <feature name="Dingding">
+                <param name="android-package" value="com.sundary.cordova.dd.Dingding" />
+            </feature>
+            <preference name="DINGDING_APPID" value="$DINGDING_APPID"/>
+        </config-file>
+
+
+   <config-file target="AndroidManifest.xml" parent="/manifest/application">
+           <activity
+            android:exported="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:launchMode="singleInstance"
+            android:name=".ddshare.DDShareActivity">
+            <intent-filter>
+                    <data android:scheme="$DINGDING_APPID"/>
+                </intent-filter>
+            </activity>
+   </config-file>
+
+
+        <config-file parent="/*" target="AndroidManifest.xml"></config-file>
+
+        <source-file src="src/android/Dingding.java" target-dir="src/com/sundary/cordova/dd" />
+        <framework src="android-build.gradle" custom="true" type="gradleReference" />
+
+    </platform>
+</plugin>
+
