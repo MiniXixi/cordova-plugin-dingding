@@ -25,19 +25,19 @@
             <preference name="DINGDING_APPID" value="$DINGDING_APPID"/>
         </config-file>
 
-
-   <config-file target="AndroidManifest.xml" parent="/manifest/application">
-           <activity
-            android:exported="true"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar"
-            android:launchMode="singleInstance"
-            android:name=".ddshare.DDShareActivity">
-            <intent-filter>
-                    <data android:scheme="$DINGDING_APPID"/>
-                </intent-filter>
-            </activity>
-   </config-file>
-
+        <config-file target="AndroidManifest.xml" parent="/manifest/application">
+                <activity
+                    android:exported="true"
+                    android:theme="@android:style/Theme.Translucent.NoTitleBar"
+                    android:launchMode="singleInstance"
+                    android:name=".ddshare.DDShareActivity">
+                    <intent-filter>
+                            <action android:name="android.intent.action.VIEW" />
+                            <category android:name="android.intent.category.DEFAULT" />
+                            <data android:scheme="$DINGDING_APPID"/>
+                        </intent-filter>
+                    </activity>
+        </config-file>
 
         <config-file parent="/*" target="AndroidManifest.xml"></config-file>
 
