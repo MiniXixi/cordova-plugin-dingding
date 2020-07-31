@@ -7,14 +7,23 @@ import android.util.Log;
 import com.android.dingtalk.share.ddsharemodule.DDShareApiFactory;
 import com.android.dingtalk.share.ddsharemodule.IDDShareApi;
 import com.android.dingtalk.share.ddsharemodule.message.SendAuth;
+import com.android.dingtalk.share.ddsharemodule.message.DDImageMessage;
+import com.android.dingtalk.share.ddsharemodule.message.DDMediaMessage;
+import com.android.dingtalk.share.ddsharemodule.message.DDTextMessage;
+import com.android.dingtalk.share.ddsharemodule.message.DDWebpageMessage;
+import com.android.dingtalk.share.ddsharemodule.message.DDZhiFuBaoMesseage;
+import com.android.dingtalk.share.ddsharemodule.message.SendMessageToDD;
+import com.android.dingtalk.share.ddsharemodule.plugin.SignatureCheck;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaPreferences;
 import org.apache.cordova.PluginResult;
+import org.apache.cordova.CordovaArgs;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import android.text.TextUtils;
 
 /**
  * @author scofieldwenwen
@@ -26,6 +35,7 @@ public class Dingding extends CordovaPlugin {
     public static final String PREFS_NAME = "Cordova.Plugin.Dingding";
     public static final int ERROR_REQUEST_FAIL = -1;
     public static final int ERROR_DINGDINDG_NOT_INSTALLED = -2;
+    public static final String ERROR_INVALID_PARAMETERS = "参数格式错误";
     public static final int ERROR_DINGDINDG_NOT_SUPPORT = -3;
 
     private static CallbackContext currentCallbackContext;
@@ -72,16 +82,68 @@ public class Dingding extends CordovaPlugin {
 
 
     @Override
-    public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
+    public boolean execute(String action, CordovaArgs args, CallbackContext callbackContext) throws JSONException {
         Log.d(TAG, String.format("%s is called. Callback ID: %s.", action, callbackContext.getCallbackId()));
         if (action.equals("isInstalled")) {
             return this.isInstalled(callbackContext);
         } else if (action.equals("login")) {
             return this.login(callbackContext);
+        } else if (action.equals("share")) {
+            return this.share(args, callbackContext);
         }
         return false;
     }
+    /**
+     * 分享网页消息
+     */
+    private boolean share(CordovaArgs args, CallbackContext callbackContext) {
+        final IDDShareApi api = getDdAPI(cordova.getActivity());
 
+        // check app is installed
+        boolean isInstalled = api.isDDAppInstalled();
+        Log.d(TAG, "isInstalled=" + isInstalled);
+        if (!isInstalled) {
+            Log.d(TAG, "未安装钉钉，请先安装");
+            callbackContext.error(ERROR_DINGDINDG_NOT_INSTALLED);
+            return true;
+        }
+        // check if # of arguments is correct
+        final JSONObject params;
+        try {
+            params = args.getJSONObject(0);
+        } catch (JSONException e) {
+            callbackContext.error(ERROR_INVALID_PARAMETERS);
+            return true;
+        }
+        //初始化一个DDWebpageMessage并填充网页链接地址
+        DDWebpageMessage webPageObject = new DDWebpageMessage();
+        //构造一个DDMediaMessage对象
+        DDMediaMessage webMessage = new DDMediaMessage();
+        //构造一个Req
+        SendMessageToDD.Req webReq = new SendMessageToDD.Req();
+        try {
+            webPageObject.mUrl = params.has("url") ? params.getString("url") : "http://www.baidu.com";
+            webMessage.mMediaObject = webPageObject;
+
+            //填充网页分享必需参数，开发者需按照自己的数据进行填充
+            webMessage.mTitle = params.has("title") ? params.getString("title") : "title";
+            webMessage.mContent = params.has("description") ? params.getString("description") : "description";
+            webMessage.mThumbUrl =params.has("thumb") ? params.getString("thumb") : "https://oral2.s3.cn-north-1.amazonaws.com.cn/logo/icon-72%402x.jpg";
+        }catch (JSONException e) {
+            callbackContext.error(ERROR_INVALID_PARAMETERS);
+            return true;
+        }
+        webReq.mMediaMessage = webMessage;
+        if (api.sendReq(webReq)) {
+            Log.i(TAG, "Share request has been sent successfully.");
+            sendNoResultPluginResult(callbackContext);
+        } else {
+            Log.i(TAG, "Share request has been sent unsuccessfully.");
+            callbackContext.error(ERROR_REQUEST_FAIL);
+        }
+        return true;
+
+    }
     /**
      * 
      * DingDing Login
@@ -125,7 +187,9 @@ public class Dingding extends CordovaPlugin {
 
         return true;
     }
-
+    private static final String ONLINE_PACKAGE_NAME = "com.wflischool.oralv3";//todo:将值替换为在钉钉开放平台上申请时的packageName
+    private static final String ONLINE_APP_ID = "dingoamwt68eyxd4gqslgh";//todo:将值替换为在钉钉开放平台上申请时平台生成的appId
+    private static final String ONLINE_SIGNATURE = "37b9e5990e251f434ffd15f1c454b028";//todo:将值替换为在钉钉开放平台上申请时的signature
     /**
      * check app is installed
      *
@@ -139,7 +203,12 @@ public class Dingding extends CordovaPlugin {
         if (!isInstalled) {
             callbackContext.success(getCallbackMsg(0,"未安装钉钉"));
         } else {
-            callbackContext.success(getCallbackMsg(1,"已安装钉钉"));
+            //校验分享到钉钉的参数是否有效
+            if(!TextUtils.equals(ONLINE_APP_ID, appId)){
+                callbackContext.error(getCallbackMsg(2,"APP_ID 与生成的不匹配"+appId));
+                return true;
+            }
+            callbackContext.success(getCallbackMsg(1,"已安装钉钉"+appId));
         }
         return true;
     }

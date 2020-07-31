@@ -15,6 +15,7 @@ import com.android.dingtalk.share.ddsharemodule.message.SendAuth;
 import com.sundary.cordova.dd.Dingding;
 
 import org.apache.cordova.CallbackContext;
+import android.widget.Toast;
 
 /**
  * @author scofieldwenwen
@@ -83,17 +84,17 @@ public class DDShareActivity extends Activity implements IDDAPIEventHandler {
                 case BaseResp.ErrCode.ERR_OK:
                     Log.d(TAG, "分享成功");
                     showToast("分享成功");
-                    ctx.success("分享成功");
+                    ctx.success("分享成功"+errMsg);
                     break;
                 case BaseResp.ErrCode.ERR_USER_CANCEL:
                     Log.d(TAG, errCode + "分享取消");
                     showToast("分享取消");
-                    ctx.error("分享取消");
+                    ctx.error("分享取消"+errMsg);
                     break;
                 default:
                     Log.e(TAG, errCode + "分享失败" + baseResp.mErrStr);
                     showToast("分享失败" + baseResp.mErrStr);
-                    ctx.error("分享失败");
+                    ctx.error("分享失败"+errMsg);
                     break;
             }
         }
@@ -109,6 +110,6 @@ public class DDShareActivity extends Activity implements IDDAPIEventHandler {
     }
 
     private void showToast(String msg) {
-        //        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 }
